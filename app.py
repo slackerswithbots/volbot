@@ -1,3 +1,4 @@
+"""Main app script."""
 import json
 import os
 import requests
@@ -7,6 +8,7 @@ from flask import Flask, request, render_template
 from pprint import pprint
 
 app = Flask(__name__)
+fb_graph = "https://graph.facebook.com/v2.6/me/messages"
 
 
 @app.route('/', methods=['GET'])
@@ -33,6 +35,7 @@ def webhook():
                     recipient_id = messaging_event["recipient"]["id"]
                     message_text = messaging_event["message"]["text"]
 
+                    response = handle_msg(message_text)
                     send_message(sender_id, "I see you.")
 
                 if messaging_event.get("delivery"):  # delivery confirmation
@@ -70,7 +73,7 @@ def send_message(recipient_id, msg_text):
             "text": msg_text
         }
     })
-    r = requests.post("https://graph.facebook.com/v2.6/me/messages", params=params, headers=headers, data=data)
+    r = requests.post(fb_graph, params=params, headers=headers, data=data)
     if r.status_code != 200:
         log(r.status_code)
         log(r.text)
