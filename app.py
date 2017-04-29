@@ -17,6 +17,7 @@ def verify():
         return request.args["hub.challenge"], 200
     return 'Youre good', 200
 
+
 @app.route('/', methods=['POST'])
 def webhook():
     """Endpoint for processing incoming messaging events."""
@@ -27,7 +28,7 @@ def webhook():
         for entry in data["entry"]:
             for messaging_event in entry["messaging"]:
                 if messaging_event.get('message'):  # someone sent us a message
-                    sender_id = messaging_event["se nder"]["id"]
+                    sender_id = messaging_event["sender"]["id"]
                     recipient_id = messaging_event["recipient"]["id"]
                     message_text = messaging_event["message"]["text"]
 
