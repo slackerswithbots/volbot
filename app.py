@@ -33,10 +33,21 @@ def webhook():
                 if messaging_event.get('message'):  # someone sent us a message
                     sender_id = messaging_event["sender"]["id"]
                     recipient_id = messaging_event["recipient"]["id"]
-                    message_text = messaging_event["message"]["text"]
+                    response = ""
 
-                    response = handle_msg(message_text)
-                    send_message(sender_id, "I see you.")
+                    try:
+                        message_text = messaging_event["message"]["text"]
+                        response = handle_msg(message_text)
+
+                    except KeyError:
+                        attachments = messaging_event["message"]["attachments"]
+                        response = handle_attachments(attachments)
+
+                    except:
+                        response = "I wasn't able to process that last message. Can you send it again?"
+
+                    finally:
+                        send_message(sender_id, response)
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
@@ -79,11 +90,52 @@ def send_message(recipient_id, msg_text):
         log(r.text)
 
 
+def handle_msg(msg):
+    """Returns an appropriate response for an incoming message."""
+    return "Hi!"
+
+def handle_attachments(attachments):
+    """Handles whatever attachments are coming in and sends back a response."""
+    # get the attachment that has the location
+    locations = list(filter(lambda loc: loc['type'] == 'location', attachments))
+    if locations:
+        loc = locations[0]
+        coords = loc["payload"]["coordinates"]
+        return str(coords)
+
+    else:
+        return "We couldn't find a location among your attachments."
+
+
 def log(msg):
     """Simple function for logging messages to the console."""
     pprint(str(msg))
     sys.stdout.flush()
 
+
+def calculate_distance(point1, point2):
+    """
+    Calculate the distance (in miles) between point1 and point2.
+    point1 and point2 must have the format {latitude, longitude}.
+    The return value is a float.
+
+    Modified and converted to Python from: http://www.movable-type.co.uk/scripts/latlong.html
+    """
+    import math
+
+    def convert_to_radians(degrees):
+        return degrees * math.pi / 180
+
+    radius_earth = 6.371E3 # km
+    phi1 = convert_to_radians(point1[lat])
+    phi2 = convert_to_radians(point2[lat])
+    delta_phi = convert_to_radians(point1[lat] - point2[lat])
+    delta_lam = convert_to_radians(point1[lon] - point2[lon])
+
+
+    a = math.sin(0.5 * delta_phi)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(0.5 * delta_lam)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return radius_earth * c / 1.60934 # convert km to miles
 
 if __name__ == "__main__":
     app.run(debug=True)
