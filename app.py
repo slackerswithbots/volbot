@@ -12,11 +12,10 @@ app = Flask(__name__)
 def verify():
     """When the endpoint is registered as a webhook, it echos a value back."""
     if request.args.get("hub.mode") == "subscribe" and request.args.get("hub.challenge"):
-        if not requests.args.get("hub.verify_token") == os.environ["VERIFY_TOKEN"]:
+        if not request.args.get("hub.verify_token") == os.environ["VERIFY_TOKEN"]:
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
-    return render_template('index.html')
-
+    return 'Youre good', 200
 
 @app.route('/', methods=['POST'])
 def webhook():
