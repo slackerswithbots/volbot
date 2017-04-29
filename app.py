@@ -3,7 +3,7 @@ import os
 import requests
 import sys
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 
 app = Flask(__name__)
 
@@ -15,7 +15,7 @@ def verify():
         if not requests.args.get("hub.verify_token") == os.environ["VERIFY_TOKEN"]:
             return "Verification token mismatch", 403
         return request.args["hub.challenge"], 200
-    return "Hello world", 200
+    return render_template('index.html')
 
 
 @app.route('/', methods=['POST'])
