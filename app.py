@@ -46,6 +46,11 @@ def webhook():
     return "ok", 200
 
 
+@app.route('/privacy', methods=['GET'])
+def privacy():
+    return 'boo', 200
+
+
 def send_message(recipient_id, msg_text):
     """Send a message to a given person."""
     log(f"Sending message to {recipient_id}: {msg_text}")
