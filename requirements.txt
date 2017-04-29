@@ -6,3 +6,5 @@ Jinja2==2.9.6
 MarkupSafe==1.0
 requests==2.13.0
 Werkzeug==0.12.1
+redis==2.10.5
+ipython==6.0

@@ -3,6 +3,7 @@ import json
 import os
 import requests
 import sys
+import redis
 
 from flask import Flask, request, render_template
 from pprint import pprint
@@ -10,6 +11,7 @@ from pprint import pprint
 app = Flask(__name__)
 fb_graph = "https://graph.facebook.com/v2.6/me/messages"
 
+cache = redis.StrictRedis("redis://h:p66c17fd780222036a0c26750cc626b4b87aa2839a5514c350ea5d6a61f0eb0a0@ec2-34-206-56-227.compute-1.amazonaws.com:41369")
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -32,6 +34,7 @@ def webhook():
             for messaging_event in entry["messaging"]:
                 if messaging_event.get('message'):  # someone sent us a message
                     sender_id = messaging_event["sender"]["id"]
+                    cache.set('id', sender_id)
                     recipient_id = messaging_event["recipient"]["id"]
                     response = ""
 
