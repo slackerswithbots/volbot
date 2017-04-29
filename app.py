@@ -33,10 +33,19 @@ def webhook():
                 if messaging_event.get('message'):  # someone sent us a message
                     sender_id = messaging_event["sender"]["id"]
                     recipient_id = messaging_event["recipient"]["id"]
-                    message_text = messaging_event["message"]["text"]
+                    try:
+                        message_text = messaging_event["message"]["text"]
+                        response = handle_msg(message_text)
 
-                    response = handle_msg(message_text)
-                    send_message(sender_id, "I see you.")
+                    except KeyError:
+                        attachments = messaging_event["attachments"]
+                        response = handle_attachments(attachments)
+
+                    except:
+                        response = "I wasn't able to process that last message. Can you send it again?"
+
+                    finally:
+                        send_message(sender_id, response)
 
                 if messaging_event.get("delivery"):  # delivery confirmation
                     pass
@@ -77,6 +86,23 @@ def send_message(recipient_id, msg_text):
     if r.status_code != 200:
         log(r.status_code)
         log(r.text)
+
+
+def handle_msg(msg):
+    """Returns an appropriate response for an incoming message."""
+    return "Hi!"
+
+def handle_attachments(attachments):
+    """Handles whatever attachments are coming in and sends back a response."""
+    # get the attachment that has the location
+    locations = list(filter(lambda loc: loc['type'] == 'location', attachments))
+    if locations:
+        loc = locations[0]
+        coords = loc["payload"]["coordinates"]
+        return str(coords)
+
+    else:
+        return "We couldn't find a location among your attachments."
 
 
 def log(msg):
