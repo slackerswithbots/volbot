@@ -4,6 +4,7 @@ import requests
 import sys
 
 from flask import Flask, request, render_template
+from pprint import pprint
 
 app = Flask(__name__)
 
@@ -77,7 +78,7 @@ def send_message(recipient_id, msg_text):
 
 def log(msg):
     """Simple function for logging messages to the console."""
-    print(str(msg))
+    pprint(str(msg))
     sys.stdout.flush()
 
 
