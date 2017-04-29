@@ -34,13 +34,13 @@ def webhook():
                     sender_id = messaging_event["sender"]["id"]
                     recipient_id = messaging_event["recipient"]["id"]
                     response = ""
-                    
+
                     try:
                         message_text = messaging_event["message"]["text"]
                         response = handle_msg(message_text)
 
                     except KeyError:
-                        attachments = messaging_event["attachments"]
+                        attachments = messaging_event["message"]["attachments"]
                         response = handle_attachments(attachments)
 
                     except:
