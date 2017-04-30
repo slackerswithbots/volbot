@@ -68,7 +68,6 @@ def webhook():
 
                     except KeyError:
                         context = cache_helper(cache, messaging_event, "location")
-                        log(context)
 
                         if "loc" not in context:
                             response = {"text": "That wasn't the type of attachment I was looking for. Can you give me something a little easier to handle?"}
@@ -131,10 +130,12 @@ def cache_helper(cache, event, action):
         if action == "location":
             if "coordinates" in event["message"]["attachments"][0]["payload"]:
                 user_loc = event["message"]["attachments"][0]["payload"]["coordinates"]
+
             else:
                 context = {"id": user_id, "msg": ["Sorry, I can't work with that."]}
                 cache.set(user_id, json.dumps(context))
                 return context
+
         if cache.get(user_id):
             cached_context = json.loads(str(cache.get(user_id), 'utf-8'))
             cached_context["msg"].append(user_msg)
@@ -156,7 +157,7 @@ def handle_msg(context):
 
     if  "hey volbot" in all_messages[-1].lower():
         return {
-        	"text": "Hello my guy, how's it going? Send me your location so I can show you some volunteer opportunities near you.",
+        	"text": "Hello my guy, how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
             "quick_replies": [
                 {
                     "content_type": "location",
