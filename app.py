@@ -225,15 +225,16 @@ def handle_city_state(city_state, context):
     events = get_events_from_api(context)
 
     if events:
-        nearby_cats = set()
-        for event in events:
-            if event['category_id']:
-                nearby_cats.add(categories[event["category_id"]])
+        # nearby_cats = set()
+        # for event in events:
+        #     if event['category_id']:
+        #         nearby_cats.add(categories[event["category_id"]])
 
-        context['events'] = events
-        cache.set(context["id"], json.dumps(context))
+        # context['events'] = events
+        # cache.set(context["id"], json.dumps(context))
+        nearby_cats, context = respond_location(events, context)
 
-        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! There's {len(context['events'])} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
 
         for cat in nearby_cats:
             output_str += f'\t- {cat}\n'
@@ -257,15 +258,16 @@ def handle_location(context):
     events = get_events_from_api(context)
 
     if events:
-        nearby_cats = set()
-        for event in events:
-            if event['category_id']:
-                nearby_cats.add(categories[event["category_id"]])
+        # nearby_cats = set()
+        # for event in events:
+        #     if event['category_id']:
+        #         nearby_cats.add(categories[event["category_id"]])
 
-        context['events'] = events
-        cache.set(context["id"], json.dumps(context))
+        # context['events'] = events
+        # cache.set(context["id"], json.dumps(context))
+        nearby_cats, context = respond_location(events, context)
 
-        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! There's {len(context['events'])} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
 
         for cat in nearby_cats:
             output_str += f'\t- {cat}\n'
@@ -278,30 +280,18 @@ def handle_location(context):
     }
 
 
-def respond_location(geo_info, context):
+def respond_location(events, context):
     """Send a standard response given a location."""
-    events = get_events_from_api(context)
 
-    if events:
-        nearby_cats = set()
-        for event in events:
-            if event['category_id']:
-                nearby_cats.add(categories[event["category_id"]])
+    nearby_cats = set()
+    for event in events:
+        if event['category_id']:
+            nearby_cats.add(categories[event["category_id"]])
 
-        context['events'] = events
-        cache.set(context["id"], json.dumps(context))
+    context['events'] = events
+    cache.set(context["id"], json.dumps(context))
+    return nearby_cats, context
 
-        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? The available event categories are:\n"
-
-        for cat in nearby_cats:
-            output_str += f'\t- {cat}\n'
-
-    else:
-        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
-
-    return {
-        "text": output_str
-    }
 
 def log(msg):
     """Simple function for logging messages to the console."""
