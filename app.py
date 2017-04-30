@@ -120,7 +120,28 @@ def cache_helper(cache, event, action):
 
 def handle_msg(context):
     """Returns an appropriate response for an incoming message."""
-    return "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you."
+    all_messages = context["msg"]
+
+    if  "hey volbot" in all_messages[-1].lower():
+        return "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you."
+    
+    elif sum([word in categories for word in all_messages[-1].split(' ')]) > 0:
+        cat = "environmentalism"
+        events = [
+            "Uncle Bob's Glorious Tree-Saving Adventure",
+            "Feed some homeless dudes",
+            "Mentor some kids",
+            "Build a Hooverville",
+            "Give poor grad students money"
+        ]
+        outstr = f"Cool! Here's the next 5 events related to {cat} near you:\n"
+        for event in events:
+            outstr += f"\t-{event}\n"
+        return outstr
+
+    else:
+        return "Sorry, I didn't quite get that last message. Can I get your location, or a volunteer event category?"
+
 
 def handle_attachments(context):
     """Handles whatever attachments are coming in and sends back a response."""
