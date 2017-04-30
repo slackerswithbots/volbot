@@ -1,4 +1,5 @@
 """Main app script."""
+import geocoder
 import json
 import os
 import requests
@@ -46,7 +47,7 @@ def webhook():
                     except KeyError:
                         context = cache_helper(cache, messaging_event, "location")
                         #attachments = messaging_event["message"]["attachments"]
-                        response = handle_attachments(context)
+                        response = handle_location(context)
 
                     except:
                         response = "I wasn't able to process that last message. Can you send it again?"
@@ -143,18 +144,13 @@ def handle_msg(context):
         return "Sorry, I didn't quite get that last message. Can I get your location, or a volunteer event category?"
 
 
-def handle_attachments(context):
-    """Handles whatever attachments are coming in and sends back a response."""
-    return "Alright thanks! I see you are in Seattle. There a lot of events going on near you. What are you interested in? Our categories are " + str(categories)
-    # get the attachment that has the location
-    #locations = list(filter(lambda loc: loc['type'] == 'location', attachments))
-    # if locations:
-    #     loc = locations[0]
-    #     coords = loc["payload"]["coordinates"]
-    #     return str(coords)
-    #
-    # else:
-    #     return "We couldn't find a location among your attachments."
+def handle_location(context):
+    """Handles whatever location is sent in."""
+
+    loc = context["loc"]
+    rev_geocode = geocoder.google([loc['long'], loc['lat']], method="reverse")
+    return f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There a lot of events going on near you. What are you interested in? Our categories are " + str(categories)
+
 
 
 def log(msg):
