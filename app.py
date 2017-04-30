@@ -187,7 +187,7 @@ def handle_location(context):
 
     nearby_cats = set()
     for event in events:
-        nearby_cats.add(categories[event.category_id])
+        nearby_cats.add(categories[event["category_id"]])
 
     context['events'] = events
     cache.set(context["id"], json.dumps(context))
