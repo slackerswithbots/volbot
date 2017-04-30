@@ -2,10 +2,10 @@
 import geocoder
 import json
 import os
-import re
-import redis
 import requests
 import sys
+import redis
+import json
 
 from flask import Flask, request, render_template
 from pprint import pprint
@@ -36,8 +36,6 @@ categories = {
     '119': 'Hobbies',
     '199': 'Other'
 }
-city_state_pattern = '[\w+\.+\-+\s+]+\,\s{1}\w{2}'
-
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -98,7 +96,7 @@ def privacy():
 
 def send_message(recipient_id, msg):
     """Send a message to a given person."""
-    log(f"Sending message to {recipient_id}: {str(msg)}")
+    log(f"Sending message to {recipient_id}: {msg['text']}")
 
     params = {
         "access_token": os.environ["PAGE_ACCESS_TOKEN"]
@@ -144,11 +142,11 @@ def cache_helper(cache, event, action):
 def handle_msg(context):
     """Returns an appropriate response for an incoming message."""
     all_messages = context["msg"]
-    cats = [val.lower() for val in categories.values()]
+    cat = [val.lower() for val in categories.values()]
 
     if  "hey volbot" in all_messages[-1].lower():
         return {
-        	"text": "Hello my guy, how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
+        	"text": "Hello my guy, how's it going? Send me your location so I can show you some volunteer opportunities near you.",
             "quick_replies": [
                 {
                     "content_type": "location",
@@ -156,7 +154,7 @@ def handle_msg(context):
             ]
         }
 
-    elif sum([word in cats for word in all_messages[-1].split(' ')]) > 0:
+    elif sum([word in cat for word in all_messages[-1].split(' ')]) > 0:
         cat = "environmentalism"
         events = [
             "Uncle Bob's Glorious Tree-Saving Adventure",
@@ -169,12 +167,8 @@ def handle_msg(context):
         for event in events:
             outstr += f"\t-{event}\n"
         return {
-            "text": outstr
+        	"text": outstr
         }
-
-    elif re.findall(city_state_pattern, all_messages[-1]):
-        city_state = re.findall(city_state_pattern, all_messages[-1])[0]
-        return handle_city_state(city_state, context)
 
     else:
         return {
@@ -182,26 +176,24 @@ def handle_msg(context):
         }
 
 
-def get_events_from_api(context):
-    """Given some latitude and longitude, retrieve events from some API."""
+def handle_location(context):
+    """Handles whatever location is sent in."""
+
+    loc = context["loc"]
+    rev_geocode = geocoder.google([loc['lat'], loc['long']], method="reverse")
+
+    ##########
+    # send a request to the database and get all events back
     payload = {
         'token': "MLPUWPRFF6K7XDTVINAG",
-        'location.latitude': context['loc']['lat'],
-        'location.longitude': context['loc']['long'],
+        'location.latitude': loc['lat'],
+        'location.longitude': loc['long'],
         'location.within': '10mi',
         'q': 'volunteer'
     }
     response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params=payload)
     events = json.loads(response.content)['events']
-    return events
-
-
-def handle_city_state(city_state, context):
-    """Receives a zip code and returns events for that city/state."""
-    geo_info = geocoder.google(city_state)
-    context["loc"] = {'lat': geo_info.lat, 'long': geo_info.lng}
-
-    events = get_events_from_api(context)
+    ##########
 
     nearby_cats = set()
     for event in events:
@@ -211,32 +203,7 @@ def handle_city_state(city_state, context):
     context['events'] = events
     cache.set(context["id"], json.dumps(context))
 
-    output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
-
-    for cat in nearby_cats:
-        output_str += f'\t- {cat}\n'
-
-    return {
-        "text": output_str
-    }
-
-
-def handle_location(context):
-    """Handles whatever location object is sent in."""
-    loc = context["loc"]
-    geo_info = geocoder.google([loc['lat'], loc['long']], method="reverse")
-
-    events = get_events_from_api(loc['lat'], loc['long'])
-
-    nearby_cats = set()
-    for event in events:
-        if event['category_id']:
-            nearby_cats.add(categories[event["category_id"]])
-
-    context['events'] = events
-    cache.set(context["id"], json.dumps(context))
-
-    output_str = f"Alright thanks! I've looked you up, and can see that you are in {geo_info.city}, {geo_info.state}. There's {len(events)} events going on near you. What are you interested in? Our categories are:\n"
+    output_str = f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There {len(events)} events going on near you. What are you interested in? Our categories are:\n"
 
     for cat in nearby_cats:
         output_str += f'\t- {cat}\n'
