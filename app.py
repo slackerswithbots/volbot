@@ -220,19 +220,14 @@ def handle_city_state(city_state, context):
     """Receives a zip code and returns events for that city/state."""
     geo_info = geocoder.google(city_state)
     context["loc"] = {'lat': geo_info.lat, 'long': geo_info.lng}
-
     output = respond_location(geo_info, context)
-
     return output
 
 def handle_location(context):
     """Handles whatever location is sent in."""
-
     loc = context["loc"]
     geo_info = geocoder.google([loc['lat'], loc['long']], method="reverse")
-
     output = respond_location(geo_info, context)
-
     return output
 
 
@@ -240,6 +235,7 @@ def respond_location(geo_info, context):
     """Send a standard response given a location."""
 
     events = get_events_from_api(context)
+    response = {}
 
     if events:
         nearby_cats = set()
@@ -252,15 +248,18 @@ def respond_location(geo_info, context):
 
         output_str = f"Alright thanks! There's {len(context['events'])} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
 
-        for cat in nearby_cats:
-            output_str += f'\t- {cat}\n'
+        # for cat in nearby_cats:
+        #     output_str += f'\t- {cat}\n'
+
+        response["quick_replies"] = [
+            {"content_type": "text", "title": cat, "payload": cat} for cat in nearby_cats
+        ]
 
     else:
         output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
 
-    return {
-        "text": output_str
-    }
+    response["text"] = output_str
+    return response
 
 
 def log(msg):
