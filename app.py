@@ -142,13 +142,13 @@ def cache_helper(cache, event, action):
 def handle_msg(context):
     """Returns an appropriate response for an incoming message."""
     all_messages = context["msg"]
-	cat = [val.lower() for val in categories.values()]
-	
+    cat = [val.lower() for val in categories.values()]
+
     if  "hey volbot" in all_messages[-1].lower():
         return {
         	"text": "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you."
         }
-    
+
     elif sum([word in cat for word in all_messages[-1].split(' ')]) > 0:
         cat = "environmentalism"
         events = [
