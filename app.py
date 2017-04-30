@@ -10,10 +10,32 @@ import json
 from flask import Flask, request, render_template
 from pprint import pprint
 
+
 app = Flask(__name__)
 fb_graph = "https://graph.facebook.com/v2.6/me/messages"
 cache = redis.from_url(os.environ.get("REDIS_URL"))
-categories = ["black", "kids", "tech", "homeless", "cleanup", "donation"]
+categories = {
+    '101': 'Business',
+    '102': 'Science & Tech',
+    '103': 'Music',
+    '104': 'Film & Media',
+    '105': 'Arts',
+    '106': 'Fashion',
+    '107': 'Health',
+    '108': 'Sports & Fitness',
+    '109': 'Travel & Outdoor',
+    '110': 'Food & Drink',
+    '111': 'Charity & Causes',
+    '112': 'Government',
+    '113': 'Community',
+    '114': 'Spirituality',
+    '115': 'Family & Education',
+    '116': 'Holiday',
+    '117': 'Home & Lifestyle',
+    '118': 'Auto, Boat & Air',
+    '119': 'Hobbies',
+    '199': 'Other'
+}
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -149,8 +171,34 @@ def handle_location(context):
 
     loc = context["loc"]
     rev_geocode = geocoder.google([loc['lat'], loc['long']], method="reverse")
-    return f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There a lot of events going on near you. What are you interested in? Our categories are " + str(categories)
 
+    ##########
+    # send a request to the database and get all events back
+    payload = {
+        'token': "MLPUWPRFF6K7XDTVINAG",
+        'location.latitude': loc['lat'],
+        'location.longitude': loc['long'],
+        'location.within': '10mi',
+        'q': 'volunteer'
+    }
+    response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params=payload)
+    events = json.loads(response.content)['events']
+    ##########
+
+    nearby_cats = set()
+    for event in events:
+        nearby_cats.add(categories[event.category_id])
+
+    context['events'] = events
+    cache.set(context["id"], json.dumps(context))
+
+    return f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There {len(events)} events going on near you. What are you interested in? Our categories are " + ', '.join(list(nearby_cats))
+
+
+def is_close(event, user_location, miles=10):
+    """Return boolean about whether or not the event is within given miles."""
+    event_loc = {'long': float(event['long']), 'lat': float(event['lat'])}
+    return calculate_distance(event_loc, user_location) <= miles
 
 
 def log(msg):
@@ -173,10 +221,10 @@ def calculate_distance(point1, point2):
         return degrees * math.pi / 180
 
     radius_earth = 6.371E3 # km
-    phi1 = convert_to_radians(point1[lat])
-    phi2 = convert_to_radians(point2[lat])
-    delta_phi = convert_to_radians(point1[lat] - point2[lat])
-    delta_lam = convert_to_radians(point1[lon] - point2[lon])
+    phi1 = convert_to_radians(point1["lat"])
+    phi2 = convert_to_radians(point2["lat"])
+    delta_phi = convert_to_radians(point1["lat"] - point2["lat"])
+    delta_lam = convert_to_radians(point1["long"] - point2["long"])
 
 
     a = math.sin(0.5 * delta_phi)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(0.5 * delta_lam)**2
