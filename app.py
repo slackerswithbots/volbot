@@ -96,7 +96,7 @@ def privacy():
 
 def send_message(recipient_id, msg):
     """Send a message to a given person."""
-    log(f"Sending message to {recipient_id}: {msg_text}")
+    log(f"Sending message to {recipient_id}: {msg['text']}")
 
     params = {
         "access_token": os.environ["PAGE_ACCESS_TOKEN"]
