@@ -252,7 +252,7 @@ def respond_location(geo_info, context):
 
         popular = sorted([(k,v) for k,v in nearby_cats.items()], key=lambda x: -x[1])[:5]
         response["quick_replies"] = [
-            {"content_type": "text", "title": '{} ({})'.format(cat[0], cat[1]), "payload": cat[0]} for cat in popular
+            {"content_type": "text", "title": cat[0], "payload": cat[0]} for cat in popular
         ]
 
     else:
