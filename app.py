@@ -72,7 +72,7 @@ def webhook():
                         response = handle_location(context)
 
                     except:
-                        response = "I wasn't able to process that last message. Can you send it again?"
+                        response = {"text": "I wasn't able to process that last message. Can you send it again?"}
 
                     finally:
                         send_message(sender_id, response)
@@ -94,7 +94,7 @@ def privacy():
     return 'boo', 200
 
 
-def send_message(recipient_id, msg_text):
+def send_message(recipient_id, msg):
     """Send a message to a given person."""
     log(f"Sending message to {recipient_id}: {msg_text}")
 
@@ -108,9 +108,7 @@ def send_message(recipient_id, msg_text):
         "recipient": {
             "id": recipient_id
         },
-        "message": {
-            "text": msg_text
-        }
+        "message": msg,
     })
     r = requests.post(fb_graph, params=params, headers=headers, data=data)
     if r.status_code != 200:
@@ -144,11 +142,14 @@ def cache_helper(cache, event, action):
 def handle_msg(context):
     """Returns an appropriate response for an incoming message."""
     all_messages = context["msg"]
-
+	cat = [val.lower() for val in categories.values()]
+	
     if  "hey volbot" in all_messages[-1].lower():
-        return "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you."
+        return {
+        	"text": "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you."
+        }
     
-    elif sum([word in categories for word in all_messages[-1].split(' ')]) > 0:
+    elif sum([word in cat for word in all_messages[-1].split(' ')]) > 0:
         cat = "environmentalism"
         events = [
             "Uncle Bob's Glorious Tree-Saving Adventure",
@@ -160,10 +161,14 @@ def handle_msg(context):
         outstr = f"Cool! Here's the next 5 events related to {cat} near you:\n"
         for event in events:
             outstr += f"\t-{event}\n"
-        return outstr
+        return {
+        	"text": outstr
+        }
 
     else:
-        return "Sorry, I didn't quite get that last message. Can I get your location, or a volunteer event category?"
+        return {
+        	"text": "Sorry, I didn't quite get that last message. Can I get your location, or a volunteer event category?"
+        }
 
 
 def handle_location(context):
@@ -198,7 +203,9 @@ def handle_location(context):
     for cat in nearby_cats:
         output_str += f'\t- {cat}\n'
 
-    return output_str
+    return {
+    	"text": output_str
+    }
 
 
 def is_close(event, user_location, miles=10):
