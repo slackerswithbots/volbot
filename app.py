@@ -220,30 +220,30 @@ def handle_city_state(city_state, context):
     """Receives a zip code and returns events for that city/state."""
     geo_info = geocoder.google(city_state)
     context["loc"] = {'lat': geo_info.lat, 'long': geo_info.lng}
-    return respond_location(geo_info, context)
+    # return respond_location(geo_info, context)
 
-    # events = get_events_from_api(context)
+    events = get_events_from_api(context)
 
-    # if events:
-    #     nearby_cats = set()
-    #     for event in events:
-    #         if event['category_id']:
-    #             nearby_cats.add(categories[event["category_id"]])
+    if events:
+        nearby_cats = set()
+        for event in events:
+            if event['category_id']:
+                nearby_cats.add(categories[event["category_id"]])
 
-    #     context['events'] = events
-    #     cache.set(context["id"], json.dumps(context))
+        context['events'] = events
+        cache.set(context["id"], json.dumps(context))
 
-    #     output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
 
-    #     for cat in nearby_cats:
-    #         output_str += f'\t- {cat}\n'
+        for cat in nearby_cats:
+            output_str += f'\t- {cat}\n'
 
-    # else:
-    #     output_str = f"Sorry, I wasn't able to find any events within 10 miles of {city_state}."
+    else:
+        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {city_state}."
 
-    # return {
-    #     "text": output_str
-    # }
+    return {
+        "text": output_str
+    }
 
 
 def handle_location(context):
@@ -252,30 +252,30 @@ def handle_location(context):
     loc = context["loc"]
     geo_info = geocoder.google([loc['lat'], loc['long']], method="reverse")
 
-    return respond_location(geo_info, context)
+    # return respond_location(geo_info, context)
 
-    # events = get_events_from_api(context)
+    events = get_events_from_api(context)
 
-    # if events:
-    #     nearby_cats = set()
-    #     for event in events:
-    #         if event['category_id']:
-    #             nearby_cats.add(categories[event["category_id"]])
+    if events:
+        nearby_cats = set()
+        for event in events:
+            if event['category_id']:
+                nearby_cats.add(categories[event["category_id"]])
 
-    #     context['events'] = events
-    #     cache.set(context["id"], json.dumps(context))
+        context['events'] = events
+        cache.set(context["id"], json.dumps(context))
 
-    #     output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
 
-    #     for cat in nearby_cats:
-    #         output_str += f'\t- {cat}\n'
+        for cat in nearby_cats:
+            output_str += f'\t- {cat}\n'
 
-    # else:
-    #     output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
+    else:
+        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
 
-    # return {
-    # 	"text": output_str
-    # }
+    return {
+    	"text": output_str
+    }
 
 
 def respond_location(geo_info, context):
@@ -303,42 +303,10 @@ def respond_location(geo_info, context):
         "text": output_str
     }
 
-
-def is_close(event, user_location, miles=10):
-    """Return boolean about whether or not the event is within given miles."""
-    event_loc = {'long': float(event['long']), 'lat': float(event['lat'])}
-    return calculate_distance(event_loc, user_location) <= miles
-
-
 def log(msg):
     """Simple function for logging messages to the console."""
     pprint(str(msg))
     sys.stdout.flush()
-
-
-def calculate_distance(point1, point2):
-    """
-    Calculate the distance (in miles) between point1 and point2.
-    point1 and point2 must have the format {latitude, longitude}.
-    The return value is a float.
-
-    Modified and converted to Python from: http://www.movable-type.co.uk/scripts/latlong.html
-    """
-    import math
-
-    def convert_to_radians(degrees):
-        return degrees * math.pi / 180
-
-    radius_earth = 6.371E3 # km
-    phi1 = convert_to_radians(point1["lat"])
-    phi2 = convert_to_radians(point2["lat"])
-    delta_phi = convert_to_radians(point1["lat"] - point2["lat"])
-    delta_lam = convert_to_radians(point1["long"] - point2["long"])
-
-
-    a = math.sin(0.5 * delta_phi)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(0.5 * delta_lam)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return radius_earth * c / 1.60934 # convert km to miles
 
 if __name__ == "__main__":
     app.run(debug=True)
