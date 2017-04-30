@@ -4,12 +4,15 @@ import os
 import requests
 import sys
 import redis
+import json
 
 from flask import Flask, request, render_template
 from pprint import pprint
 
 app = Flask(__name__)
 fb_graph = "https://graph.facebook.com/v2.6/me/messages"
+cache = redis.from_url(os.environ.get("REDIS_URL"))
+categories = ["black", "kids", "tech", "homeless", "cleanup", "donation"]
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -36,12 +39,14 @@ def webhook():
                     response = ""
 
                     try:
-                        message_text = messaging_event["message"]["text"]
-                        response = handle_msg(message_text)
+                        context = cache_helper(cache, messaging_event, "text")
+                        #message_text = messaging_event["message"]["text"]
+                        response = handle_msg(context)
 
                     except KeyError:
-                        attachments = messaging_event["message"]["attachments"]
-                        response = handle_attachments(attachments)
+                        context = cache_helper(cache, messaging_event, "location")
+                        #attachments = messaging_event["message"]["attachments"]
+                        response = handle_attachments(context)
 
                     except:
                         response = "I wasn't able to process that last message. Can you send it again?"
@@ -89,22 +94,45 @@ def send_message(recipient_id, msg_text):
         log(r.status_code)
         log(r.text)
 
+def cache_helper(cache, event, action):
+        context = {} # Context dict
+        user_id = event["sender"]["id"]
+        user_msg = ""
+        user_loc = {}
+        if action == "text":
+            user_msg = event["message"]["text"]
+        if action == "location":
+            user_loc = event["message"]["attachments"]["location"][0]["payload"]["coordinates"]
+        cached_context = json.loads(str(cache.get(user_id), 'utf-8'))
+        if cached_context:
+            cached_context["msg"].append(user_msg)
+            if user_loc:
+                cached_context["loc"] = user_loc
+            cache.set(user_id, json.dumps(cached_context))
+            return cached_context
+        else:
+            context["id"] =  user_id
+            context["msg"] = [user_msg]
+            context["loc"] = user_loc
+            cache.set(user_id, json.dumps(context))
+            return context
 
-def handle_msg(msg):
+def handle_msg(context):
     """Returns an appropriate response for an incoming message."""
-    return "Hi!"
+    return "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you."
 
-def handle_attachments(attachments):
+def handle_attachments(context):
     """Handles whatever attachments are coming in and sends back a response."""
+    return "Alright thanks! I see you are in Seattle. There a lot of events going on near you. What are you interested in? Our categories are " + categories
     # get the attachment that has the location
-    locations = list(filter(lambda loc: loc['type'] == 'location', attachments))
-    if locations:
-        loc = locations[0]
-        coords = loc["payload"]["coordinates"]
-        return str(coords)
-
-    else:
-        return "We couldn't find a location among your attachments."
+    #locations = list(filter(lambda loc: loc['type'] == 'location', attachments))
+    # if locations:
+    #     loc = locations[0]
+    #     coords = loc["payload"]["coordinates"]
+    #     return str(coords)
+    #
+    # else:
+    #     return "We couldn't find a location among your attachments."
 
 
 def log(msg):
