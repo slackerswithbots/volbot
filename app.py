@@ -146,7 +146,12 @@ def handle_msg(context):
 
     if  "hey volbot" in all_messages[-1].lower():
         return {
-        	"text": "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you."
+        	"text": "Hello my guy, how's it going? I will need your location to show you some volunteer opportunities near you.",
+            "quick_replies": [
+                {
+                    "content_type": "location",
+                }
+            ]
         }
 
     elif sum([word in cat for word in all_messages[-1].split(' ')]) > 0:
