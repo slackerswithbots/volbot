@@ -8,6 +8,7 @@ import requests
 import sys
 
 
+from datetime import datetime
 from flask import Flask, request, render_template
 from pprint import pprint
 
@@ -38,6 +39,7 @@ categories = {
     '199': 'Other'
 }
 city_state_pattern = '[\w+\.+\-+\s+]+\,\s{1}\w{2}'
+date_fmt = '%Y-%m-%dT%H:%M:%S'
 
 
 @app.route('/', methods=['GET'])
@@ -178,22 +180,17 @@ def handle_msg(context):
         return handle_city_state(city_state, context)
 
     elif all_messages[-1].lower() in cat:
-        events = [
-            "Uncle Bob's Glorious Tree-Saving Adventure",
-            "Feed some homeless dudes",
-            "Mentor some kids",
-            "Build a Hooverville",
-            "Give poor grad students money"
-        ]
-        outstr = f"Cool! Here's the next 5 events related to {all_messages[-1]} near you:\n"
-        for event in events:
+        all_events = context["events"]
+        filtered = list(filter(lambda x: categories[x["category_id"]].lower() == all_messages[-1].lower(), all_events))
+        more_recent = sorted(filtered, key=lambda x: datetime.strptime(x["start"]["local"], date_fmt))[:5]
+        outstr = f"Cool! Here's the next 5 events related to the '{all_messages[-1]}' category near you:\n"
+        for event in more_recent:
             outstr += f"\t-{event}\n"
         return {
         	"text": outstr
         }
 
     else:
-        log(all_messages)
         return {
         	"text": "Sorry, I didn't quite get that last message. Can I get your location, or a volunteer event category?"
         }
