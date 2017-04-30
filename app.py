@@ -64,9 +64,13 @@ def webhook():
                     try:
                         message_text = messaging_event["message"]["text"]
                         context = cache_helper(cache, messaging_event, "text")
+                        log(context)
+
                         if "loc" not in context:
-                            raise ValueError("Can't handle this yet")
-                        response = handle_msg(context)
+                            response = {"text": "That wasn't the type of attachment I was looking for. Can you give me something a little easier to handle?"}
+
+                        else:
+                            response = handle_msg(context)
 
                     except KeyError:
                         context = cache_helper(cache, messaging_event, "location")
