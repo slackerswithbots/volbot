@@ -177,7 +177,7 @@ def handle_msg(context):
         city_state = re.findall(city_state_pattern, all_messages[-1])[0]
         return handle_city_state(city_state, context)
 
-    elif all_messages[-1] in cat:
+    elif all_messages[-1].lower() in cat:
         events = [
             "Uncle Bob's Glorious Tree-Saving Adventure",
             "Feed some homeless dudes",
