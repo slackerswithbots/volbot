@@ -2,10 +2,11 @@
 import geocoder
 import json
 import os
+import re
+import redis
 import requests
 import sys
-import redis
-import json
+
 
 from flask import Flask, request, render_template
 from pprint import pprint
@@ -36,6 +37,8 @@ categories = {
     '119': 'Hobbies',
     '199': 'Other'
 }
+city_state_pattern = '[\w+\.+\-+\s+]+\,\s{1}\w{2}'
+
 
 @app.route('/', methods=['GET'])
 def verify():
@@ -163,6 +166,12 @@ def handle_msg(context):
                     "content_type": "location",
                 }
             ]
+        }
+
+    elif re.findall(city_state_pattern, all_messages[-1]):
+        city_state = re.findall(city_state_pattern, all_messages[-1])[0]
+        retun {
+            "text": f"You live in {city_state}, correct?"
         }
 
     elif sum([word in cat for word in all_messages[-1].split(' ')]) > 0:
