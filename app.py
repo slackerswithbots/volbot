@@ -148,7 +148,7 @@ def handle_location(context):
     """Handles whatever location is sent in."""
 
     loc = context["loc"]
-    rev_geocode = geocoder.google([loc['long'], loc['lat']], method="reverse")
+    rev_geocode = geocoder.google([loc['lat'], loc['long']], method="reverse")
     return f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There a lot of events going on near you. What are you interested in? Our categories are " + str(categories)
 
 
