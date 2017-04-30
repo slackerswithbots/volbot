@@ -103,7 +103,7 @@ def cache_helper(cache, event, action):
         if action == "text":
             user_msg = event["message"]["text"]
         if action == "location":
-            user_loc = event["message"]["attachments"]["location"][0]["payload"]["coordinates"]
+            user_loc = event["message"]["attachments"][0]["payload"]["coordinates"]
         cached_context = json.loads(str(cache.get(user_id), 'utf-8'))
         if cached_context:
             cached_context["msg"].append(user_msg)
