@@ -221,12 +221,9 @@ def handle_city_state(city_state, context):
     geo_info = geocoder.google(city_state)
     context["loc"] = {'lat': geo_info.lat, 'long': geo_info.lng}
 
-    output_str = respond_location(geo_info, context)
+    output = respond_location(geo_info, context)
 
-    return {
-        "text": output_str
-    }
-
+    return output
 
 def handle_location(context):
     """Handles whatever location is sent in."""
@@ -234,11 +231,9 @@ def handle_location(context):
     loc = context["loc"]
     geo_info = geocoder.google([loc['lat'], loc['long']], method="reverse")
 
-    output_str = respond_location(geo_info, context)
+    output = respond_location(geo_info, context)
 
-    return {
-    	"text": output_str
-    }
+    return output
 
 
 def respond_location(geo_info, context):
@@ -263,7 +258,9 @@ def respond_location(geo_info, context):
     else:
         output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
 
-    return output_str
+    return {
+        "text": output_str
+    }
 
 
 def log(msg):
