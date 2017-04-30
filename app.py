@@ -220,15 +220,8 @@ def handle_city_state(city_state, context):
     """Receives a zip code and returns events for that city/state."""
     geo_info = geocoder.google(city_state)
     context["loc"] = {'lat': geo_info.lat, 'long': geo_info.lng}
-    # return respond_location(geo_info, context)
 
-    events = get_events_from_api(context)
-
-    if events:
-        output_str = respond_location(geo_info, events, context)
-
-    else:
-        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {city_state}."
+    output_str = respond_location(geo_info, context)
 
     return {
         "text": output_str
@@ -241,36 +234,34 @@ def handle_location(context):
     loc = context["loc"]
     geo_info = geocoder.google([loc['lat'], loc['long']], method="reverse")
 
-    # return respond_location(geo_info, context)
-
-    events = get_events_from_api(context)
-
-    if events:
-        output_str = respond_location(geo_info, events, context)
-
-    else:
-        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
+    output_str = respond_location(geo_info, context)
 
     return {
     	"text": output_str
     }
 
 
-def respond_location(geo_info, events, context):
+def respond_location(geo_info, context):
     """Send a standard response given a location."""
 
-    nearby_cats = set()
-    for event in events:
-        if event['category_id']:
-            nearby_cats.add(categories[event["category_id"]])
+    events = get_events_from_api(context)
 
-    context['events'] = events
-    cache.set(context["id"], json.dumps(context))
+    if events:
+        nearby_cats = set()
+        for event in events:
+            if event['category_id']:
+                nearby_cats.add(categories[event["category_id"]])
 
-    output_str = f"Alright thanks! There's {len(context['events'])} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+        context['events'] = events
+        cache.set(context["id"], json.dumps(context))
 
-    for cat in nearby_cats:
-        output_str += f'\t- {cat}\n'
+        output_str = f"Alright thanks! There's {len(context['events'])} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+
+        for cat in nearby_cats:
+            output_str += f'\t- {cat}\n'
+
+    else:
+        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
 
     return output_str
 
