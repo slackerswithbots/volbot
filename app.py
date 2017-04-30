@@ -193,6 +193,7 @@ def handle_msg(context):
         }
 
     else:
+        log(all_messages)
         return {
         	"text": "Sorry, I didn't quite get that last message. Can I get your location, or a volunteer event category?"
         }
