@@ -124,6 +124,7 @@ def cache_helper(cache, event, action):
         if action == "text":
             user_msg = event["message"]["text"]
         if action == "location":
+            log(event)
             user_loc = event["message"]["attachments"][0]["payload"]["coordinates"]
         if cache.get(user_id):
             cached_context = json.loads(str(cache.get(user_id), 'utf-8'))
