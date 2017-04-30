@@ -193,7 +193,12 @@ def handle_location(context):
     context['events'] = events
     cache.set(context["id"], json.dumps(context))
 
-    return f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There {len(events)} events going on near you. What are you interested in? Our categories are " + ', '.join(list(nearby_cats))
+    output_str = f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There {len(events)} events going on near you. What are you interested in? Our categories are:\n"
+
+    for cat in nearby_cats:
+        output_str += f'\t- {cat}\n'
+
+    return output_str
 
 
 def is_close(event, user_location, miles=10):
