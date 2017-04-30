@@ -13,7 +13,7 @@ from pprint import pprint
 
 
 app = Flask(__name__)
-fb_graph = "https://graph.facebook.com/v2.6/me/messages"
+fb_graph = "https://graph.facebook.com/v2.6/me/"
 cache = redis.from_url(os.environ.get("REDIS_URL"))
 categories = {
     '101': 'Business',
@@ -91,7 +91,7 @@ def webhook():
                     pass
 
                 if messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
-                    pass
+                    send_postback()
 
     return "ok", 200
 
@@ -117,10 +117,39 @@ def send_message(recipient_id, msg):
         },
         "message": msg,
     })
-    r = requests.post(fb_graph, params=params, headers=headers, data=data)
+    url = fb_graph + "messages"
+    r = requests.post(url, params=params, headers=headers, data=data)
     if r.status_code != 200:
         log(r.status_code)
         log(r.text)
+
+
+def send_postback():
+    """Send a specific message as a part of a postback."""
+    log(f"Handling postback message to {recipient_id}")
+
+    params = {
+        "access_token": os.environ["PAGE_ACCESS_TOKEN"]
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+    data = json.dumps({
+        "setting_type": "call_to_actions",
+        "thread_state": "new_thread",
+        "call_to_actions": [
+            {
+                "payload": "Watchu Want?"
+            }
+        ]
+    })
+    url = fb_graph + "thread_settings"
+    r = requests.post(url, params=params, headers=headers, data=data)
+    if r.status_code != 200:
+        log(r.status_code)
+        log(r.text)
+
+
 
 def cache_helper(cache, event, action):
         context = {} # Context dict
@@ -160,7 +189,7 @@ def handle_msg(context):
 
     if  "hey volbot" in all_messages[-1].lower():
         return {
-        	"text": "Hey {{user_full_name}} how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
+        	"text": "Hey my guy, how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
             "quick_replies": [
                 {
                     "content_type": "location",
