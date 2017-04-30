@@ -170,9 +170,7 @@ def handle_msg(context):
 
     elif re.findall(city_state_pattern, all_messages[-1]):
         city_state = re.findall(city_state_pattern, all_messages[-1])[0]
-        return {
-            "text": f"You live in {city_state}, correct?"
-        }
+        return handle_city_state(city_state, context)
 
     elif sum([word in cat for word in all_messages[-1].split(' ')]) > 0:
         cat = "environmentalism"
@@ -194,6 +192,45 @@ def handle_msg(context):
         return {
         	"text": "Sorry, I didn't quite get that last message. Can I get your location, or a volunteer event category?"
         }
+
+
+def get_events_from_api(context):
+    """Given some latitude and longitude, retrieve events from some API."""
+    payload = {
+        'token': "MLPUWPRFF6K7XDTVINAG",
+        'location.latitude': context['loc']['lat'],
+        'location.longitude': context['loc']['long'],
+        'location.within': '10mi',
+        'q': 'volunteer'
+    }
+    response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params=payload)
+    events = json.loads(response.content)['events']
+    return events
+
+
+def handle_city_state(city_state, context):
+    """Receives a zip code and returns events for that city/state."""
+    geo_info = geocoder.google(city_state)
+    context["loc"] = {'lat': geo_info.lat, 'long': geo_info.lng}
+
+    events = get_events_from_api(context)
+
+    nearby_cats = set()
+    for event in events:
+        if event['category_id']:
+            nearby_cats.add(categories[event["category_id"]])
+
+    context['events'] = events
+    cache.set(context["id"], json.dumps(context))
+
+    output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+
+    for cat in nearby_cats:
+        output_str += f'\t- {cat}\n'
+
+    return {
+        "text": output_str
+    }
 
 
 def handle_location(context):
