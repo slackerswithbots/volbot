@@ -181,7 +181,7 @@ def handle_msg(context):
 
     elif all_messages[-1].lower() in cat:
         all_events = [event for event in context["events"] if event["category_id"]]
-        filtered = list(filter(lambda x: categories[x["category_id"]].lower() == all_messages[-1].lower() if x["category_id"], all_events))
+        filtered = list(filter(lambda x: categories[x["category_id"]].lower() == all_messages[-1].lower(), all_events))
         more_recent = sorted(filtered, key=lambda x: datetime.strptime(x["start"]["local"], date_fmt))[:5]
         outstr = f"Cool! Here's the next 5 events related to the '{all_messages[-1]}' category near you:\n"
         for event in more_recent:
