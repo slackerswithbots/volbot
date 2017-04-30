@@ -203,10 +203,13 @@ def get_events_from_api(context):
         'location.within': '10mi',
         'q': 'volunteer'
     }
-    response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params=payload)
-    events = json.loads(response.content)['events']
-    return events
-
+    try:
+        response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params=payload)
+        events = json.loads(response.content)['events']
+        return events
+    except Exception:
+        log(Exception)
+        return []
 
 def handle_city_state(city_state, context):
     """Receives a zip code and returns events for that city/state."""
@@ -215,18 +218,22 @@ def handle_city_state(city_state, context):
 
     events = get_events_from_api(context)
 
-    nearby_cats = set()
-    for event in events:
-        if event['category_id']:
-            nearby_cats.add(categories[event["category_id"]])
+    if events:
+        nearby_cats = set()
+        for event in events:
+            if event['category_id']:
+                nearby_cats.add(categories[event["category_id"]])
 
-    context['events'] = events
-    cache.set(context["id"], json.dumps(context))
+        context['events'] = events
+        cache.set(context["id"], json.dumps(context))
 
-    output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
 
-    for cat in nearby_cats:
-        output_str += f'\t- {cat}\n'
+        for cat in nearby_cats:
+            output_str += f'\t- {cat}\n'
+
+    else:
+        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {city_state}."
 
     return {
         "text": output_str
