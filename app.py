@@ -91,7 +91,7 @@ def webhook():
                     pass
 
                 if messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
-                    send_postback()
+                    pass
 
                 else:
                     log(messaging_event)
@@ -125,33 +125,6 @@ def send_message(recipient_id, msg):
     if r.status_code != 200:
         log(r.status_code)
         log(r.text)
-
-
-def send_postback():
-    """Send a specific message as a part of a postback."""
-    log(f"Handling postback message to {recipient_id}")
-
-    params = {
-        "access_token": os.environ["PAGE_ACCESS_TOKEN"]
-    }
-    headers = {
-        "Content-Type": "application/json"
-    }
-    data = json.dumps({
-        "setting_type": "call_to_actions",
-        "thread_state": "new_thread",
-        "call_to_actions": [
-            {
-                "payload": "Get Started"
-            }
-        ]
-    })
-    url = fb_graph + "thread_settings"
-    r = requests.post(url, params=params, headers=headers, data=data)
-    if r.status_code != 200:
-        log(r.status_code)
-        log(r.text)
-
 
 
 def cache_helper(cache, event, action):
@@ -247,29 +220,30 @@ def handle_city_state(city_state, context):
     """Receives a zip code and returns events for that city/state."""
     geo_info = geocoder.google(city_state)
     context["loc"] = {'lat': geo_info.lat, 'long': geo_info.lng}
+    return respond_location(geo_info, context)
 
-    events = get_events_from_api(context)
+    # events = get_events_from_api(context)
 
-    if events:
-        nearby_cats = set()
-        for event in events:
-            if event['category_id']:
-                nearby_cats.add(categories[event["category_id"]])
+    # if events:
+    #     nearby_cats = set()
+    #     for event in events:
+    #         if event['category_id']:
+    #             nearby_cats.add(categories[event["category_id"]])
 
-        context['events'] = events
-        cache.set(context["id"], json.dumps(context))
+    #     context['events'] = events
+    #     cache.set(context["id"], json.dumps(context))
 
-        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+    #     output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
 
-        for cat in nearby_cats:
-            output_str += f'\t- {cat}\n'
+    #     for cat in nearby_cats:
+    #         output_str += f'\t- {cat}\n'
 
-    else:
-        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {city_state}."
+    # else:
+    #     output_str = f"Sorry, I wasn't able to find any events within 10 miles of {city_state}."
 
-    return {
-        "text": output_str
-    }
+    # return {
+    #     "text": output_str
+    # }
 
 
 def handle_location(context):
@@ -278,6 +252,34 @@ def handle_location(context):
     loc = context["loc"]
     geo_info = geocoder.google([loc['lat'], loc['long']], method="reverse")
 
+    return respond_location(geo_info, context)
+
+    # events = get_events_from_api(context)
+
+    # if events:
+    #     nearby_cats = set()
+    #     for event in events:
+    #         if event['category_id']:
+    #             nearby_cats.add(categories[event["category_id"]])
+
+    #     context['events'] = events
+    #     cache.set(context["id"], json.dumps(context))
+
+    #     output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+
+    #     for cat in nearby_cats:
+    #         output_str += f'\t- {cat}\n'
+
+    # else:
+    #     output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
+
+    # return {
+    # 	"text": output_str
+    # }
+
+
+def respond_location(geo_info, context):
+    """Send a standard response given a location."""
     events = get_events_from_api(context)
 
     if events:
@@ -289,7 +291,7 @@ def handle_location(context):
         context['events'] = events
         cache.set(context["id"], json.dumps(context))
 
-        output_str = f"Alright thanks! I've looked you up, and can see that you are in {geo_info.city}, {geo_info.state}. There {len(events)} events going on near you. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! There's {len(events)} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? The available event categories are:\n"
 
         for cat in nearby_cats:
             output_str += f'\t- {cat}\n'
@@ -298,7 +300,7 @@ def handle_location(context):
         output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
 
     return {
-    	"text": output_str
+        "text": output_str
     }
 
 
