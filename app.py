@@ -160,7 +160,7 @@ def handle_msg(context):
 
     if  "hey volbot" in all_messages[-1].lower():
         return {
-        	"text": "Hey {{user_full_name}}, how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
+        	"text": "Hey {{user_full_name}} how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
             "quick_replies": [
                 {
                     "content_type": "location",
