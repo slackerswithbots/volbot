@@ -160,7 +160,7 @@ def handle_msg(context):
 
     if  "hey volbot" in all_messages[-1].lower():
         return {
-        	"text": "Hello my guy, how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
+        	"text": "Hey {{user_full_name}}, how's it going? Send me your location so I can show you some volunteer opportunities near you. If you can't hit the button below, just send me your city and state (e.g. Seattle, WA) and we can figure it out from there.",
             "quick_replies": [
                 {
                     "content_type": "location",
@@ -244,33 +244,26 @@ def handle_location(context):
     """Handles whatever location is sent in."""
 
     loc = context["loc"]
-    rev_geocode = geocoder.google([loc['lat'], loc['long']], method="reverse")
+    geo_info = geocoder.google([loc['lat'], loc['long']], method="reverse")
 
-    ##########
-    # send a request to the database and get all events back
-    payload = {
-        'token': "MLPUWPRFF6K7XDTVINAG",
-        'location.latitude': loc['lat'],
-        'location.longitude': loc['long'],
-        'location.within': '10mi',
-        'q': 'volunteer'
-    }
-    response = requests.get("https://www.eventbriteapi.com/v3/events/search/", params=payload)
-    events = json.loads(response.content)['events']
-    ##########
+    events = get_events_from_api(context)
 
-    nearby_cats = set()
-    for event in events:
-        if event['category_id']:
-            nearby_cats.add(categories[event["category_id"]])
+    if events:
+        nearby_cats = set()
+        for event in events:
+            if event['category_id']:
+                nearby_cats.add(categories[event["category_id"]])
 
-    context['events'] = events
-    cache.set(context["id"], json.dumps(context))
+        context['events'] = events
+        cache.set(context["id"], json.dumps(context))
 
-    output_str = f"Alright thanks! I've looked you up, and can see that you are in {rev_geocode.city}, {rev_geocode.state}. There {len(events)} events going on near you. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! I've looked you up, and can see that you are in {geo_info.city}, {geo_info.state}. There {len(events)} events going on near you. What are you interested in? Our categories are:\n"
 
-    for cat in nearby_cats:
-        output_str += f'\t- {cat}\n'
+        for cat in nearby_cats:
+            output_str += f'\t- {cat}\n'
+
+    else:
+        output_str = f"Sorry, I wasn't able to find any events within 10 miles of {geo_info.city}, {geo_info.state}."
 
     return {
     	"text": output_str
