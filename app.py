@@ -64,6 +64,8 @@ def webhook():
                     try:
                         message_text = messaging_event["message"]["text"]
                         context = cache_helper(cache, messaging_event, "text")
+                        if "loc" not in context:
+                            raise ValueError("Can't handle this yet")
                         response = handle_msg(context)
 
                     except KeyError:
