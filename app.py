@@ -68,7 +68,6 @@ def webhook():
 
                     except KeyError:
                         context = cache_helper(cache, messaging_event, "location")
-                        #attachments = messaging_event["message"]["attachments"]
                         response = handle_location(context)
 
                     except:
@@ -124,8 +123,12 @@ def cache_helper(cache, event, action):
         if action == "text":
             user_msg = event["message"]["text"]
         if action == "location":
-            log(event)
-            user_loc = event["message"]["attachments"][0]["payload"]["coordinates"]
+            if "coordinates" in event["message"]["attachments"][0]["payload"]:
+                user_loc = event["message"]["attachments"][0]["payload"]["coordinates"]
+            else:
+                context = {"id": user_id, "msg": ["Sorry, I can't work with that."]}
+                cache.set(user_id, json.dumps(context))
+                return context
         if cache.get(user_id):
             cached_context = json.loads(str(cache.get(user_id), 'utf-8'))
             cached_context["msg"].append(user_msg)
