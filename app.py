@@ -124,7 +124,7 @@ def handle_msg(context):
 
 def handle_attachments(context):
     """Handles whatever attachments are coming in and sends back a response."""
-    return "Alright thanks! I see you are in Seattle. There a lot of events going on near you. What are you interested in? Our categories are " + categories
+    return "Alright thanks! I see you are in Seattle. There a lot of events going on near you. What are you interested in? Our categories are " + str(categories)
     # get the attachment that has the location
     #locations = list(filter(lambda loc: loc['type'] == 'location', attachments))
     # if locations:
