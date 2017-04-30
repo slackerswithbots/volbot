@@ -39,10 +39,9 @@ def webhook():
                     response = ""
 
                     try:
+                        message_text = messaging_event["message"]["text"]
                         context = cache_helper(cache, messaging_event, "text")
-                        #message_text = messaging_event["message"]["text"]
-                        #response = handle_msg(context)
-                        response = "hi"
+                        response = handle_msg(context)
 
                     except KeyError:
                         context = cache_helper(cache, messaging_event, "location")
@@ -100,6 +99,7 @@ def cache_helper(cache, event, action):
         user_id = event["sender"]["id"]
         user_msg = ""
         user_loc = {}
+        log("\n\n\n\n" + event)
         if action == "text":
             user_msg = event["message"]["text"]
         if action == "location":
