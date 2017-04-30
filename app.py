@@ -99,7 +99,7 @@ def cache_helper(cache, event, action):
         user_id = event["sender"]["id"]
         user_msg = ""
         user_loc = {}
-        log("\n\n\n\n" + event)
+        log("\n\n\n\n" + str(event))
         if action == "text":
             user_msg = event["message"]["text"]
         if action == "location":
