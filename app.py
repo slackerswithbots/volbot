@@ -238,21 +238,21 @@ def respond_location(geo_info, context):
     response = {}
 
     if events:
-        nearby_cats = set()
+        nearby_cats = {}
         for event in events:
             if event['category_id']:
-                nearby_cats.add(categories[event["category_id"]])
+                cat = categories[event["category_id"]]
+                nearby_cats.setdefault(cat, 1)
+                nearby_cats[cat] += 1
 
         context['events'] = events
         cache.set(context["id"], json.dumps(context))
 
-        output_str = f"Alright thanks! There's {len(context['events'])} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? Our categories are:\n"
+        output_str = f"Alright thanks! There's {len(context['events'])} events going on near {geo_info.city}, {geo_info.state}. What are you interested in? These categories have the most events:\n"
 
-        # for cat in nearby_cats:
-        #     output_str += f'\t- {cat}\n'
-
+        popular = sorted([(k,v) for k,v in nearby_cats.items()], key=lambda x: -x[1])[:5]
         response["quick_replies"] = [
-            {"content_type": "text", "title": cat, "payload": cat} for cat in nearby_cats
+            {"content_type": "text", "title": '{} ({})'.format(cat[0], cat[1]), "payload": cat[0]} for cat in popular
         ]
 
     else:
