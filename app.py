@@ -93,6 +93,9 @@ def webhook():
                 if messaging_event.get("postback"):  # user clicked/tapped "postback" button in earlier message
                     send_postback()
 
+                else:
+                    log(messaging_event)
+
     return "ok", 200
 
 
@@ -139,7 +142,7 @@ def send_postback():
         "thread_state": "new_thread",
         "call_to_actions": [
             {
-                "payload": "Watchu Want?"
+                "payload": "Get Started"
             }
         ]
     })
