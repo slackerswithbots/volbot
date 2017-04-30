@@ -170,7 +170,7 @@ def handle_msg(context):
 
     elif re.findall(city_state_pattern, all_messages[-1]):
         city_state = re.findall(city_state_pattern, all_messages[-1])[0]
-        retun {
+        return {
             "text": f"You live in {city_state}, correct?"
         }
 
