@@ -177,8 +177,7 @@ def handle_msg(context):
         city_state = re.findall(city_state_pattern, all_messages[-1])[0]
         return handle_city_state(city_state, context)
 
-    elif sum([word in cat for word in all_messages[-1].split(' ')]) > 0:
-        cat = "environmentalism"
+    elif all_messages[-1] in cat:
         events = [
             "Uncle Bob's Glorious Tree-Saving Adventure",
             "Feed some homeless dudes",
@@ -186,7 +185,7 @@ def handle_msg(context):
             "Build a Hooverville",
             "Give poor grad students money"
         ]
-        outstr = f"Cool! Here's the next 5 events related to {cat} near you:\n"
+        outstr = f"Cool! Here's the next 5 events related to {all_messages[-1]} near you:\n"
         for event in events:
             outstr += f"\t-{event}\n"
         return {
