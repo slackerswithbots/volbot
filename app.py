@@ -200,7 +200,7 @@ def handle_msg(context):
 def get_events_from_api(context):
     """Given some latitude and longitude, retrieve events from some API."""
     payload = {
-        'token': "MLPUWPRFF6K7XDTVINAG",
+        'token': os.environ.get("EVENTBRITE_TOKEN"),
         'location.latitude': context['loc']['lat'],
         'location.longitude': context['loc']['long'],
         'location.within': '10mi',
